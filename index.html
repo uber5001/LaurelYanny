@@ -1,0 +1,81 @@
+
+<html>
+<head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+    window.onclick = window.ontouchstart = async () => { window.ontouchstart = window.onclick = null;
+        document.body.innerHTML = '';
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+
+        const response = await fetch('/I_MZMpZUZHli3v1q.mp4');
+        const blob = await response.arrayBuffer();
+        context.decodeAudioData(blob, buffer => {
+            function slider({min, max, node, prop}) {
+                const slider = document.createElement('input');
+                slider.type = "range";
+                slider.min = min;
+                slider.max = max;
+                slider.oninput = e => {
+                    try {
+                        const val = e.target.value;
+                        sliderOut.innerHTML = prop + ": " + val;
+                        node[prop].value = +slider.value;
+                    } catch (e) {
+                        document.body.innerHTML = 'err' + e + e.message;
+                    }
+                }
+                document.body.appendChild(slider);
+
+                const sliderOut = document.createElement('span');
+                sliderOut.innerHTML = prop;
+                document.body.appendChild(sliderOut);
+            }
+
+
+            
+            const filter = context.createBiquadFilter();
+            filter.type = "lowpass";
+            filter.gain.value = 10;
+            filter.connect(context.destination);
+
+            const source = context.createBufferSource();
+            source.buffer = buffer;
+            source.loop = true;
+            source.connect(filter);
+			if (source.start) {
+				source.start(0);
+			} else if (source.play) {
+				source.play(0);
+			} else if (source.noteOn) {
+				source.noteOn(0);
+			}
+            
+            slider({
+                min: 0,
+                max: 4000,
+                node: filter,
+                prop: "frequency"
+            })
+            slider({
+                min: 0,
+                max: 20,
+                node: filter,
+                prop: "Q"
+            })
+
+            const span = document.createElement('div');
+            span.innerHTML = "Adjust the frequency silder to below ~1200Hz to hear \"Laurel\".".
+            document.body.appendChild(text);
+        }, e => {document.body.innerHTML = 'err' + e + e.message});
+    }
+</script>
+<style>
+    body, input {
+        font-size: 2rem;
+    }
+</style>
+</head>
+<body>
+    click anywhere to begin
+</body>
+</html>
